@@ -115,20 +115,3 @@ local function CreateToggle(text, default, callback)
         end
     end)
 end
-
--- Example buttons and toggles
-CreateButton("Click Me", function()
-    print("Button clicked!")
-end)
-
-CreateButton("Print Hello", function()
-    print("Hello World!")
-end)
-
-CreateToggle("Enable Feature", false, function(state)
-    print("Toggle:", state)
-end)
-
-CreateToggle("God Mode", true, function(state)
-    print("God Mode:", state)
-end)
