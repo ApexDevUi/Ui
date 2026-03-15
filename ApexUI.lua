@@ -1,116 +1,113 @@
--- Load ApexUI
+-- Load ApexUI library
 local ApexUI = loadstring(game:HttpGet("https://raw.githubusercontent.com/ApexDevUi/Ui/refs/heads/main/ApexUI.lua"))()
 
 -- Create main window
-local Window = ApexUI:CreateWindow("Cartoon UI Example")
+local Window = ApexUI:CreateWindow({
+    Name = "Modern Cartoon UI"
+})
 
--- Create a tab
+-- Create Main tab
 local MainTab = Window:CreateTab("Main")
 
--- Create a ScrollingFrame inside the tab
-local scrollFrame = Instance.new("ScrollingFrame")
-scrollFrame.Size = UDim2.new(1, -20, 1, -10)
-scrollFrame.Position = UDim2.new(0, 10, 0, 5)
-scrollFrame.BackgroundColor3 = Color3.fromRGB(245, 240, 230) -- soft white/brown
-scrollFrame.BorderSizePixel = 0
-scrollFrame.CanvasSize = UDim2.new(0,0,0,0)
-scrollFrame.ScrollBarThickness = 6
-scrollFrame.Parent = MainTab.Container -- assuming ApexUI tab exposes Container
+-- Create a ScrollingFrame inside the tab for content
+local pageFrame = MainTab.Page
+local scroll = Instance.new("ScrollingFrame")
+scroll.Size = UDim2.new(1, 0, 1, 0)
+scroll.CanvasSize = UDim2.new(0, 0, 0, 0)
+scroll.ScrollBarThickness = 6
+scroll.BackgroundColor3 = Color3.fromRGB(245, 235, 220) -- soft white/brown
+scroll.Parent = pageFrame
 
 local layout = Instance.new("UIListLayout")
 layout.Padding = UDim.new(0,8)
 layout.SortOrder = Enum.SortOrder.LayoutOrder
-layout.Parent = scrollFrame
+layout.Parent = scroll
 
--- Update CanvasSize
-layout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
-    scrollFrame.CanvasSize = UDim2.new(0,0,0,layout.AbsoluteContentSize.Y + 10)
-end)
+local function updateCanvas()
+    scroll.CanvasSize = UDim2.new(0, 0, 0, layout.AbsoluteContentSize.Y + 10)
+end
+layout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(updateCanvas)
 
--- Helper function to create modern buttons
-local function CreateButton(text, callback)
+-- Helper to create buttons inside scrolling frame
+local function CreateButton(name, callback)
     local btn = Instance.new("TextButton")
-    btn.Size = UDim2.new(1,0,0,32)
-    btn.BackgroundColor3 = Color3.fromRGB(230,210,190)
-    btn.Text = text
+    btn.Size = UDim2.new(1, -12, 0, 28)
+    btn.BackgroundColor3 = Color3.fromRGB(220, 200, 180)
+    btn.Text = name
     btn.Font = Enum.Font.FredokaOne
     btn.TextSize = 14
-    btn.TextColor3 = Color3.fromRGB(90,60,40)
-    btn.Parent = scrollFrame
+    btn.TextColor3 = Color3.fromRGB(90, 60, 40)
+    btn.Parent = scroll
+    btn.AutoButtonColor = true
 
-    local c = Instance.new("UICorner")
-    c.CornerRadius = UDim.new(0,12)
-    c.Parent = btn
-
-    local s = Instance.new("UIStroke")
-    s.Color = Color3.fromRGB(150,120,100)
-    s.Thickness = 2
-    s.Parent = btn
+    local stroke = Instance.new("UIStroke")
+    stroke.Thickness = 2
+    stroke.Color = Color3.fromRGB(150, 120, 100)
+    stroke.Parent = btn
 
     btn.MouseButton1Click:Connect(callback)
 end
 
--- Helper function to create modern toggles
-local function CreateToggle(text, default, callback)
+-- Helper to create toggles inside scrolling frame
+local function CreateToggle(name, default, callback)
     local holder = Instance.new("Frame")
-    holder.Size = UDim2.new(1,0,0,32)
-    holder.BackgroundColor3 = Color3.fromRGB(230,210,190)
-    holder.Parent = scrollFrame
+    holder.Size = UDim2.new(1, -12, 0, 28)
+    holder.BackgroundColor3 = Color3.fromRGB(220, 200, 180)
+    holder.Parent = scroll
 
-    local c = Instance.new("UICorner")
-    c.CornerRadius = UDim.new(0,12)
-    c.Parent = holder
-
-    local s = Instance.new("UIStroke")
-    s.Color = Color3.fromRGB(150,120,100)
-    s.Thickness = 2
-    s.Parent = holder
+    local stroke = Instance.new("UIStroke")
+    stroke.Thickness = 2
+    stroke.Color = Color3.fromRGB(150, 120, 100)
+    stroke.Parent = holder
 
     local label = Instance.new("TextLabel")
-    label.Size = UDim2.new(0.6,0,1,0)
+    label.Size = UDim2.new(0.6, 0, 1, 0)
+    label.Position = UDim2.new(0, 6, 0, 0)
     label.BackgroundTransparency = 1
-    label.Text = text
+    label.Text = name
     label.Font = Enum.Font.FredokaOne
     label.TextSize = 14
-    label.TextColor3 = Color3.fromRGB(90,60,40)
+    label.TextColor3 = Color3.fromRGB(90, 60, 40)
     label.TextXAlignment = Enum.TextXAlignment.Left
-    label.Position = UDim2.new(0,10,0,0)
     label.Parent = holder
 
     local toggleBtn = Instance.new("Frame")
-    toggleBtn.Size = UDim2.new(0,30,0,16)
-    toggleBtn.Position = UDim2.new(1,-36,0.5,-8)
-    toggleBtn.BackgroundColor3 = Color3.fromRGB(200,160,120)
+    toggleBtn.Size = UDim2.new(0, 24, 0, 14)
+    toggleBtn.Position = UDim2.new(1, -32, 0.5, -7)
+    toggleBtn.BackgroundColor3 = default and Color3.fromRGB(120, 200, 140) or Color3.fromRGB(200, 160, 120)
     toggleBtn.Parent = holder
-    local knob = Instance.new("Frame")
-    knob.Size = UDim2.new(0,14,0,14)
-    knob.Position = UDim2.new(0,1,0,1)
-    knob.BackgroundColor3 = Color3.fromRGB(245,240,230)
-    knob.Parent = toggleBtn
+    toggleBtn.AnchorPoint = Vector2.new(0, 0)
+    toggleBtn.Name = "ToggleFrame"
 
-    local k = Instance.new("UICorner")
-    k.CornerRadius = UDim.new(0,7)
-    k.Parent = knob
-    local t = Instance.new("UICorner")
-    t.CornerRadius = UDim.new(0,8)
-    t.Parent = toggleBtn
+    local knob = Instance.new("Frame")
+    knob.Size = UDim2.new(0, 12, 0, 12)
+    knob.Position = default and UDim2.new(1, -13, 0, 1) or UDim2.new(0, 1, 0, 1)
+    knob.BackgroundColor3 = Color3.fromRGB(240, 220, 180)
+    knob.Parent = toggleBtn
+    knob.Name = "Knob"
+
+    local uicorner1 = Instance.new("UICorner")
+    uicorner1.CornerRadius = UDim.new(0, 7)
+    uicorner1.Parent = toggleBtn
+
+    local uicorner2 = Instance.new("UICorner")
+    uicorner2.CornerRadius = UDim.new(0, 6)
+    uicorner2.Parent = knob
 
     local state = default
-    local function update()
-        if state then
-            toggleBtn.BackgroundColor3 = Color3.fromRGB(120,200,140)
-            knob.Position = UDim2.new(1,-15,0,1)
-        else
-            toggleBtn.BackgroundColor3 = Color3.fromRGB(200,160,120)
-            knob.Position = UDim2.new(0,1,0,1)
-        end
+    local TweenService = game:GetService("TweenService")
+
+    local function updateToggle()
+        local targetPos = state and UDim2.new(1, -13, 0, 1) or UDim2.new(0, 1, 0, 1)
+        local targetColor = state and Color3.fromRGB(120, 200, 140) or Color3.fromRGB(200, 160, 120)
+        TweenService:Create(knob, TweenInfo.new(0.2), {Position = targetPos}):Play()
+        TweenService:Create(toggleBtn, TweenInfo.new(0.2), {BackgroundColor3 = targetColor}):Play()
     end
-    update()
 
     holder.InputBegan:Connect(function(input)
         if input.UserInputType == Enum.UserInputType.MouseButton1 then
             state = not state
-            update()
+            updateToggle()
             callback(state)
         end
     end)
