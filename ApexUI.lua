@@ -2,11 +2,9 @@ local UiLibrary = {}
 local Players = game:GetService("Players")
 local UIS = game:GetService("UserInputService")
 local TweenService = game:GetService("TweenService")
-
 local player = Players.LocalPlayer
 
-local FONT = Enum.Font.FredokaOne
-
+-- Soft rounded helper
 local function corner(obj,r)
     local c = Instance.new("UICorner")
     c.CornerRadius = UDim.new(0,r)
@@ -15,75 +13,83 @@ end
 
 local function stroke(obj)
     local s = Instance.new("UIStroke")
-    s.Color = Color3.fromRGB(90,90,90)
-    s.Thickness = 1
+    s.Color = Color3.fromRGB(180,150,120)
+    s.Thickness = 2
     s.Parent = obj
 end
 
-function UiLibrary:CreateWindow(title)
+local function tween(obj,props,time)
+    TweenService:Create(obj,TweenInfo.new(time),props):Play()
+end
 
+function UiLibrary:CreateWindow(title)
     local gui = Instance.new("ScreenGui")
-    gui.Name = "ModernUILibrary"
+    gui.Name = "ModernCartoonUI"
     gui.ResetOnSpawn = false
     gui.Parent = player.PlayerGui
 
     local main = Instance.new("Frame")
-    main.Size = UDim2.new(0,320,0,220)
-    main.Position = UDim2.new(0.5,-160,0.5,-110)
-    main.BackgroundColor3 = Color3.fromRGB(20,20,20)
+    main.Size = UDim2.new(0,380,0,240)
+    main.Position = UDim2.new(0.5,-190,0.5,-120)
+    main.BackgroundColor3 = Color3.fromRGB(220,200,180)
     main.Parent = gui
-    corner(main,12)
+    corner(main,16)
     stroke(main)
 
-    local top = Instance.new("TextLabel")
-    top.Size = UDim2.new(1,0,0,32)
-    top.BackgroundTransparency = 1
-    top.Text = title
-    top.Font = FONT
-    top.TextSize = 16
-    top.TextColor3 = Color3.new(1,1,1)
+    -- Top bar
+    local top = Instance.new("Frame")
+    top.Size = UDim2.new(1,0,0,36)
+    top.BackgroundColor3 = Color3.fromRGB(200,170,140)
     top.Parent = main
+    corner(top,16)
+    stroke(top)
 
+    local titleLabel = Instance.new("TextLabel")
+    titleLabel.Size = UDim2.new(1,0,1,0)
+    titleLabel.BackgroundTransparency = 1
+    titleLabel.Text = title
+    titleLabel.Font = Enum.Font.FredokaOne
+    titleLabel.TextColor3 = Color3.fromRGB(90,60,40)
+    titleLabel.TextSize = 18
+    titleLabel.Parent = top
+
+    -- Tab container
     local tabHolder = Instance.new("Frame")
-    tabHolder.Size = UDim2.new(0,90,1,-32)
-    tabHolder.Position = UDim2.new(0,0,0,32)
+    tabHolder.Size = UDim2.new(0,90,1,-36)
+    tabHolder.Position = UDim2.new(0,0,0,36)
     tabHolder.BackgroundTransparency = 1
     tabHolder.Parent = main
 
     local tabLayout = Instance.new("UIListLayout")
-    tabLayout.Padding = UDim.new(0,4)
+    tabLayout.Padding = UDim.new(0,6)
     tabLayout.Parent = tabHolder
 
+    -- Pages container
     local pages = Instance.new("Frame")
-    pages.Size = UDim2.new(1,-90,1,-32)
-    pages.Position = UDim2.new(0,90,0,32)
+    pages.Size = UDim2.new(1,-90,1,-36)
+    pages.Position = UDim2.new(0,90,0,36)
     pages.BackgroundTransparency = 1
     pages.Parent = main
 
-    local window = {}
-
-    -- draggable
+    -- Draggable
     do
-        local drag
+        local dragging
         local start
         local startPos
-
         top.InputBegan:Connect(function(input)
             if input.UserInputType == Enum.UserInputType.MouseButton1 then
-                drag = true
+                dragging = true
                 start = input.Position
                 startPos = main.Position
-
                 input.Changed:Connect(function()
                     if input.UserInputState == Enum.UserInputState.End then
-                        drag = false
+                        dragging = false
                     end
                 end)
             end
         end)
-
         UIS.InputChanged:Connect(function(input)
-            if drag and input.UserInputType == Enum.UserInputType.MouseMovement then
+            if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
                 local delta = input.Position - start
                 main.Position = UDim2.new(
                     startPos.X.Scale,
@@ -95,18 +101,18 @@ function UiLibrary:CreateWindow(title)
         end)
     end
 
-    function window:CreateTab(name)
+    local window = {}
 
+    function window:CreateTab(name)
         local tabBtn = Instance.new("TextButton")
-        tabBtn.Size = UDim2.new(1,-6,0,26)
-        tabBtn.Position = UDim2.new(0,3,0,0)
+        tabBtn.Size = UDim2.new(1,-6,0,30)
+        tabBtn.BackgroundColor3 = Color3.fromRGB(230,210,190)
         tabBtn.Text = name
-        tabBtn.Font = FONT
-        tabBtn.TextSize = 13
-        tabBtn.TextColor3 = Color3.new(1,1,1)
-        tabBtn.BackgroundColor3 = Color3.fromRGB(35,35,35)
+        tabBtn.Font = Enum.Font.FredokaOne
+        tabBtn.TextSize = 14
+        tabBtn.TextColor3 = Color3.fromRGB(120,80,50)
         tabBtn.Parent = tabHolder
-        corner(tabBtn,8)
+        corner(tabBtn,12)
         stroke(tabBtn)
 
         local page = Instance.new("Frame")
@@ -116,107 +122,96 @@ function UiLibrary:CreateWindow(title)
         page.Parent = pages
 
         local layout = Instance.new("UIListLayout")
-        layout.Padding = UDim.new(0,6)
+        layout.Padding = UDim.new(0,8)
         layout.Parent = page
 
         tabBtn.MouseButton1Click:Connect(function()
             for _,v in pairs(pages:GetChildren()) do
-                if v:IsA("Frame") then
-                    v.Visible = false
-                end
+                if v:IsA("Frame") then v.Visible = false end
             end
             page.Visible = true
         end)
 
         local tab = {}
 
-        function tab:CreateButton(text,callback)
-
+        -- Button
+        function tab:CreateButton(opts)
             local btn = Instance.new("TextButton")
-            btn.Size = UDim2.new(1,-8,0,30)
-            btn.Position = UDim2.new(0,4,0,0)
-            btn.BackgroundColor3 = Color3.fromRGB(35,35,35)
-            btn.Text = text
-            btn.Font = FONT
-            btn.TextSize = 13
-            btn.TextColor3 = Color3.new(1,1,1)
+            btn.Size = UDim2.new(1,-12,0,28)
+            btn.BackgroundColor3 = Color3.fromRGB(230,210,190)
+            btn.Text = opts.Name or "Button"
+            btn.Font = Enum.Font.FredokaOne
+            btn.TextSize = 14
+            btn.TextColor3 = Color3.fromRGB(120,80,50)
             btn.Parent = page
-            corner(btn,8)
+            corner(btn,12)
             stroke(btn)
 
-            btn.MouseButton1Click:Connect(function()
-                TweenService:Create(btn,TweenInfo.new(0.12),{BackgroundColor3=Color3.fromRGB(55,55,55)}):Play()
-                task.wait(0.12)
-                TweenService:Create(btn,TweenInfo.new(0.12),{BackgroundColor3=Color3.fromRGB(35,35,35)}):Play()
-                callback()
+            btn.MouseEnter:Connect(function()
+                tween(btn,{BackgroundColor3=Color3.fromRGB(245,220,180)},0.2)
+            end)
+            btn.MouseLeave:Connect(function()
+                tween(btn,{BackgroundColor3=Color3.fromRGB(230,210,190)},0.2)
             end)
 
+            btn.MouseButton1Click:Connect(function()
+                if opts.Callback then opts.Callback() end
+            end)
         end
 
-        function tab:CreateToggle(text,callback)
-
+        -- Toggle
+        function tab:CreateToggle(opts)
             local holder = Instance.new("Frame")
-            holder.Size = UDim2.new(1,-8,0,30)
-            holder.Position = UDim2.new(0,4,0,0)
-            holder.BackgroundColor3 = Color3.fromRGB(35,35,35)
+            holder.Size = UDim2.new(1,-12,0,28)
+            holder.BackgroundColor3 = Color3.fromRGB(230,210,190)
             holder.Parent = page
-            corner(holder,8)
+            corner(holder,12)
             stroke(holder)
 
             local label = Instance.new("TextLabel")
-            label.Size = UDim2.new(1,-50,1,0)
+            label.Size = UDim2.new(0.6,0,1,0)
             label.BackgroundTransparency = 1
-            label.Text = text
-            label.Font = FONT
-            label.TextSize = 13
-            label.TextColor3 = Color3.new(1,1,1)
+            label.Text = opts.Name or "Toggle"
+            label.Font = Enum.Font.FredokaOne
+            label.TextSize = 14
+            label.TextColor3 = Color3.fromRGB(120,80,50)
             label.TextXAlignment = Enum.TextXAlignment.Left
             label.Position = UDim2.new(0,8,0,0)
             label.Parent = holder
 
             local toggleBtn = Instance.new("Frame")
-            toggleBtn.Size = UDim2.new(0,36,0,18)
-            toggleBtn.Position = UDim2.new(1,-44,0.5,-9)
-            toggleBtn.BackgroundColor3 = Color3.fromRGB(60,60,60)
+            toggleBtn.Size = UDim2.new(0,24,0,14)
+            toggleBtn.Position = UDim2.new(1,-32,0.5,-7)
+            toggleBtn.BackgroundColor3 = Color3.fromRGB(200,160,120)
             toggleBtn.Parent = holder
-            corner(toggleBtn,9)
+            corner(toggleBtn,7)
 
             local knob = Instance.new("Frame")
-            knob.Size = UDim2.new(0,14,0,14)
-            knob.Position = UDim2.new(0,2,0.5,-7)
-            knob.BackgroundColor3 = Color3.new(1,1,1)
+            knob.Size = UDim2.new(0,12,0,12)
+            knob.Position = UDim2.new(0,1,0,1)
+            knob.BackgroundColor3 = Color3.fromRGB(240,220,180)
             knob.Parent = toggleBtn
-            corner(knob,7)
+            corner(knob,6)
 
-            local state = false
+            local state = opts.Default or false
+            local function update()
+                if state then
+                    tween(toggleBtn,{BackgroundColor3=Color3.fromRGB(120,200,140)},0.2)
+                    tween(knob,{Position=UDim2.new(1,-13,0,1)},0.2)
+                else
+                    tween(toggleBtn,{BackgroundColor3=Color3.fromRGB(200,160,120)},0.2)
+                    tween(knob,{Position=UDim2.new(0,1,0,1)},0.2)
+                end
+            end
+            update()
 
             holder.InputBegan:Connect(function(input)
-                if input.UserInputType == Enum.UserInputType.MouseButton1 then
-
+                if input.UserInputType==Enum.UserInputType.MouseButton1 then
                     state = not state
-
-                    if state then
-                        TweenService:Create(toggleBtn,TweenInfo.new(0.2),{
-                            BackgroundColor3 = Color3.fromRGB(0,170,127)
-                        }):Play()
-
-                        TweenService:Create(knob,TweenInfo.new(0.2),{
-                            Position = UDim2.new(1,-16,0.5,-7)
-                        }):Play()
-                    else
-                        TweenService:Create(toggleBtn,TweenInfo.new(0.2),{
-                            BackgroundColor3 = Color3.fromRGB(60,60,60)
-                        }):Play()
-
-                        TweenService:Create(knob,TweenInfo.new(0.2),{
-                            Position = UDim2.new(0,2,0.5,-7)
-                        }):Play()
-                    end
-
-                    callback(state)
+                    update()
+                    if opts.Callback then opts.Callback(state) end
                 end
             end)
-
         end
 
         return tab
